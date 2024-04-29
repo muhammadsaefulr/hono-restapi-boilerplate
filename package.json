@@ -1,0 +1,21 @@
+{
+  "scripts": {
+    "dev": "bun run --hot src/index.ts"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed/seeder.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.13.0",
+    "bcrypt": "^5.1.1",
+    "hono": "^4.2.8",
+    "uuid": "^9.0.1",
+    "zod": "^3.23.4"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "^20.12.7",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  }
+}
