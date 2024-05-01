@@ -1,15 +1,14 @@
 import { Hono } from 'hono'
 import users from './router/userRoutes'
-import { HTTPException } from 'hono/http-exception'
-import { errorHandler } from './middleware/middleware'
+import { errorHandler, jwtSign } from './middleware/middleware'
 const app = new Hono()
+ 
+app.use(jwtSign)
+app.onError(errorHandler);
 
 app.route("/users", users)
-// app.onError(errorHandler)
-
 app.get('/', (c) => c.json({message: "Hello World !"}))
 
-app.onError(errorHandler)
 
 Bun.serve({
   fetch: app.fetch,

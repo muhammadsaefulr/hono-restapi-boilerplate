@@ -34,7 +34,7 @@ class userHandler {
           message: `Data Berhasil Diambil !`,
           dataUser: data,
         },
-        404
+        200
       );
     } catch (e) {
       throw new HTTPException(500, {
@@ -59,19 +59,25 @@ class userHandler {
       const isEmailExist = await userService.findUserByEmail(dataInput.email);
 
       if (isEmailExist) {
-        return c.json({
-          status: 400,
-          message: "Nama Atau Email Sudah Digunakan !",
-        });
+        return c.json(
+          {
+            status: 400,
+            message: "Nama Atau Email Sudah Digunakan !",
+          },
+          400
+        );
       }
 
       const dataRegsiter = await userService.registerUser(dataInput);
 
-      return c.json({
-        status: 200,
-        message: `Berhasil Membuat Akun !`,
-        dataRegsiter,
-      });
+      return c.json(
+        {
+          status: 200,
+          message: `Berhasil Membuat Akun !`,
+          dataRegsiter,
+        },
+        200
+      );
     } catch (e) {
       throw new HTTPException(500, { message: `Error 500 Caused By : ${e}` });
     }
@@ -90,15 +96,8 @@ class userHandler {
         return c.json({ status: 400, message: "Incorrect Id Input" }, 400);
       }
 
-      const validator = userValidate.validate(userSchemaZod.user, dataUpdate);
-
-      if (validator) {
-        return c.json(
-          { status: 400, message: "validator error !", validator },
-          400
-        );
-      }
-
+      const validator = userValidate.validate(userSchemaZod.userUpdate, dataUpdate);
+      
       const isIdExist = await userService.userFindById(parsedIdParam);
 
       if (!isIdExist) {
@@ -110,6 +109,7 @@ class userHandler {
           404
         );
       }
+
 
       const updateData = await userService.updateUser(
         parsedIdParam,
@@ -152,6 +152,42 @@ class userHandler {
         },
         200
       );
+    } catch (e) {
+      throw new HTTPException(500, { message: `Error 500 Caused By : ${e}` });
+    }
+  };
+
+  static authUser = async (c: Context) => {
+    try {
+      const data: UserAuth = await c.req.json();
+
+      const emailFind = await userService.findUserByEmail(data.email);
+      const email = emailFind?.email;
+
+      if (!emailFind) {
+        return c.json(
+          {
+            status: 404,
+            message: `User dengan Email ${email} Tidak Ditemukan !`,
+          },
+          404
+        );
+      }
+
+      const comparePass = await Bun.password.verify(
+        data.password,
+        emailFind.password,
+        "bcrypt"
+      );
+
+      if (!comparePass) {
+        return c.json({ message: "Password Salah !" }, 501);
+      }
+
+      const dataPush = { ...data, username: emailFind.username };
+      const authService = await userService.authUser(dataPush);
+
+      return c.json({ status: 200, message: "Berhasil !", authService }, 200);
     } catch (e) {
       throw new HTTPException(500, { message: `Error 500 Caused By : ${e}` });
     }

@@ -1,3 +1,4 @@
+import { password } from "bun";
 import { z } from "zod";
 
 export class userSchemaZod {
@@ -11,4 +12,10 @@ export class userSchemaZod {
     email: z.string(),
     password: z.string(),
   });
+
+  static readonly userUpdate = z.object({
+    email: z.string().optional(),
+    username: z.string().optional(),
+    password: z.string().optional()
+  })
 }

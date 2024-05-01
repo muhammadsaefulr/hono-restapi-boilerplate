@@ -1,4 +1,6 @@
 import { PrismaClient } from "@prisma/client";
+import { HTTPException } from "hono/http-exception";
+import { ResponseError } from "../errorHandle/responseError";
 
 const prisma = new PrismaClient();
 
@@ -44,15 +46,29 @@ class userService {
   };
 
   static registerUser = async (req: User) => {
+    const hash = await Bun.password.hash(req.password, {
+      algorithm: "bcrypt",
+    });
+
     const registUser = await prisma.userModel.create({
       data: {
         username: req.username,
-        password: req.password,
+        password: hash,
         email: req.email,
       },
     });
 
     return registUser;
+  };
+
+  static authUser = async (req: UserAuth) => {
+
+    const dataRes = {
+      username: req.username,
+      email: req.email,
+    };
+
+    return dataRes;
   };
 
   static updateUser = async (id: number, req: User) => {
