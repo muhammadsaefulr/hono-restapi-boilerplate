@@ -9,7 +9,7 @@ export class userSchemaZod {
   });
 
   static readonly userAuth = z.object({
-    email: z.string(),
+    email: z.string().email(),
     password: z.string(),
   });
 

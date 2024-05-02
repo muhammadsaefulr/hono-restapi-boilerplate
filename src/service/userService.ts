@@ -1,12 +1,12 @@
 import { PrismaClient } from "@prisma/client";
-import { HTTPException } from "hono/http-exception";
-import { ResponseError } from "../errorHandle/responseError";
+
+import { sign } from "hono/jwt";
 
 const prisma = new PrismaClient();
 
 class userService {
   static userFindById = async (userId: number) => {
-    const data = await prisma.userModel.findUnique({
+    const req = await prisma.userModel.findUnique({
       where: {
         id: userId,
       },
@@ -22,27 +22,27 @@ class userService {
       },
     });
 
-    return data;
+    return req;
   };
 
   static findUserByEmail = async (email: string) => {
-    const data = await prisma.userModel.findUnique({
+    const req = await prisma.userModel.findUnique({
       where: {
         email: email,
       },
     });
 
-    return data;
+    return req;
   };
 
   static findUserByUsername = async (name: string) => {
-    const data = await prisma.userModel.findMany({
+    const req = await prisma.userModel.findMany({
       where: {
         username: name,
       },
     });
 
-    return data;
+    return req;
   };
 
   static registerUser = async (req: User) => {
@@ -62,17 +62,28 @@ class userService {
   };
 
   static authUser = async (req: UserAuth) => {
+    const defaultExp = 2 * 4 * 60 * 60;
+    const currentTime = new Date();
+    const responseExpDate = new Date(currentTime.getTime() + defaultExp * 1000);
 
-    const dataRes = {
+    const reqMatch = {
       username: req.username,
       email: req.email,
+      role: req.roleId,
+      exp: responseExpDate,
     };
 
-    return dataRes;
+    const secret = process.env.SECRET_JWT_KEY;
+
+    const token = await sign(reqMatch, secret!, "HS256");
+
+    const reqRes = { ...reqMatch, jwtToken: token };
+
+    return reqRes;
   };
 
   static updateUser = async (id: number, req: User) => {
-    const updateDataUser = await prisma.userModel.update({
+    const updatereqUser = await prisma.userModel.update({
       where: {
         id: id,
       },
@@ -83,7 +94,7 @@ class userService {
       },
     });
 
-    return updateDataUser;
+    return updatereqUser;
   };
 
   static deleteUser = async (idUser: number) => {

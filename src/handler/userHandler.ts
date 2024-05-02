@@ -96,8 +96,18 @@ class userHandler {
         return c.json({ status: 400, message: "Incorrect Id Input" }, 400);
       }
 
-      const validator = userValidate.validate(userSchemaZod.userUpdate, dataUpdate);
-      
+      const validator = userValidate.validate(
+        userSchemaZod.userUpdate,
+        dataUpdate
+      );
+
+      if (!validator) {
+        return c.json(
+          { status: 400, message: "validator error !", validator },
+          400
+        );
+      }
+
       const isIdExist = await userService.userFindById(parsedIdParam);
 
       if (!isIdExist) {
@@ -109,7 +119,6 @@ class userHandler {
           404
         );
       }
-
 
       const updateData = await userService.updateUser(
         parsedIdParam,
@@ -162,13 +171,22 @@ class userHandler {
       const data: UserAuth = await c.req.json();
 
       const emailFind = await userService.findUserByEmail(data.email);
-      const email = emailFind?.email;
+
+      if (data.email === null || undefined) {
+        return c.json(
+          {
+            status: 404,
+            message: `User dengan Email ${data.email} Tidak Ditemukan !`,
+          },
+          404
+        );
+      }
 
       if (!emailFind) {
         return c.json(
           {
             status: 404,
-            message: `User dengan Email ${email} Tidak Ditemukan !`,
+            message: `User dengan Email ${data.email} Tidak Ditemukan !`,
           },
           404
         );
@@ -184,7 +202,11 @@ class userHandler {
         return c.json({ message: "Password Salah !" }, 501);
       }
 
-      const dataPush = { ...data, username: emailFind.username };
+      const dataPush = {
+        ...data,
+        username: emailFind.username,
+        roleId: emailFind.roleId,
+      };
       const authService = await userService.authUser(dataPush);
 
       return c.json({ status: 200, message: "Berhasil !", authService }, 200);
