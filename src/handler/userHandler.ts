@@ -172,16 +172,6 @@ class userHandler {
 
       const emailFind = await userService.findUserByEmail(data.email);
 
-      if (data.email === null || undefined) {
-        return c.json(
-          {
-            status: 404,
-            message: `User dengan Email ${data.email} Tidak Ditemukan !`,
-          },
-          404
-        );
-      }
-
       if (!emailFind) {
         return c.json(
           {
